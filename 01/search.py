@@ -16,6 +16,8 @@ from search import *
 
 warnings.filterwarnings("ignore")
 
+MASK = int('100000000000000000000000000000000000000000000000000000000000000', 2)
+
 
 def pluck(dict, *args):
     return (dict[arg] for arg in args)
@@ -35,7 +37,6 @@ class Map(dict):
             if isinstance(arg, dict):
                 for k, v in arg.items():
                     self[k] = v
-
         if kwargs:
             for k, v in kwargs.items():
                 self[k] = v
@@ -59,14 +60,14 @@ class Map(dict):
 
 
 class State(Map):
-    __slots__ = ("x", "y", "angle", "tiles", "already_faced")
+    __slots__ = ("x", "y", "angle", "depth", "already_faced")
 
-    def __init__(self, x, y, angle, tiles, already_faced):
+    def __init__(self, x, y, angle, depth, already_faced):
         super().__init__()
         self.x = x
         self.y = y
         self.angle = angle
-        self.tiles = tiles
+        self.depth = depth
         self.already_faced = already_faced
 
     def __eq__(self, other):
@@ -90,6 +91,8 @@ class RobotCommons:
         WALL = 3
         VISITED = 4
         SOLUTION = 5
+        CURRENT = 6
+        NEXT = 7
 
     class Actions(Enum):
         MV_UP = auto()
@@ -120,25 +123,32 @@ class RobotCommons:
         Tile.SOLUTION: [24, 144, 136, 255],
         Tile.START: [117, 151, 143, 255],
         Tile.VISITED: [209, 187, 161, 150],
-        Tile.GOAL: [235, 101, 89, 255]
+        Tile.GOAL: [235, 101, 89, 255],
+        Tile.CURRENT: [184, 15, 10, 175],
+        Tile.NEXT: [114, 133, 165, 175]
     }
 
 
-def fix_tile_map_after_solution(tiles, initial, goal, solution):
+def fix_tile_map_after_solution(tiles, initial, goal, solution, current=None, next=None):
+    result = tiles.copy()
     if solution:
         pos = [(n.state.x, n.state.y) for n in solution.path()]
         rows, cols = np.transpose(pos)
-        tiles[rows, cols] = RobotCommons.Tile.SOLUTION
-    tiles[initial.x, initial.y] = RobotCommons.Tile.START
-    tiles[goal.x, goal.y] = RobotCommons.Tile.GOAL
-    return tiles
+        result[rows, cols] = RobotCommons.Tile.SOLUTION
+    result[initial.x, initial.y] = RobotCommons.Tile.START
+    result[goal.x, goal.y] = RobotCommons.Tile.GOAL
+    if current:
+        result[current.x, current.y] = RobotCommons.Tile.CURRENT
+    if next:
+        result[next.x, next.y] = RobotCommons.Tile.NEXT
+    return result
 
 
-def plot_tile_map(tiles):
+def plot_tile_map(tiles, show_img=True):
     ######## THIS IS FOR IMSHOW ######################################
     width, height = np.shape(tiles)
     data = tiles.astype(int)
-    c = np.array([[RobotCommons.color_map[v] for v in row] for row in data], dtype='B')
+    c = np.array([[RobotCommons.color_map.get(v, RobotCommons.color_map.get(RobotCommons.Tile.VISITED)) for v in row] for row in data], dtype='B')
 
     ######## THIS IS FOR SCATTER ######################################
     # This is for having the coordinates of the scattered points, note that rows' indices
@@ -183,52 +193,57 @@ def plot_tile_map(tiles):
     cb = f.colorbar(a1, ax=ax1)
     # cb = plt.colorbar(sc, ax=ax2)
     # plt.bar(range(len(y)), y, color = c1)
-    cb.set_ticks(np.arange(len(RobotCommons.color_map)) * 50)
-    cb.set_ticklabels(['GOAL', 'START', 'EMPTY', 'WALL', 'VISITED', 'SOLUTION'])
+    cb.set_ticks(np.arange(len(RobotCommons.color_map)) * 36)
+    cb.set_ticklabels(['GOAL', 'START', 'EMPTY', 'WALL', 'VISITED', 'SOLUTION', 'CURRENT', 'NEXT'])
     # sc = plt.scatter(x, y, c=c1, s=70, marker='X')
     # set ticks for all subplots
     plt.setp((ax1,), xticks=np.arange(width), yticks=np.arange(height))
-    plt.show()
+    if show_img:
+        plt.show()
 
 
 class Robot(Problem):
 
-    def __init__(self, alg, initial, goal=None):
+    def __init__(self, tiles, alg, initial, goal=None):
         super(Robot, self).__init__(initial, goal)
         self.alg = alg
-        shape = np.shape(initial.tiles)
-        self.visited_tiles = np.zeros(shape)
-        self.visited_tiles_visualization = initial.tiles.copy()
+        self.visited_tiles = tiles.copy()
+        self.step = 0
 
     def actions(self, state):
-        x, y, t = pluck(state, 'x', 'y', 'tiles')
+        x, y, depth = pluck(state, 'x', 'y', 'depth')
+        t = self.visited_tiles
         max_x, max_y = np.shape(t)
         left, right, up, down = x - 1, x + 1, y - 1, y + 1
+        bit_check = MASK >> state.depth
 
         def __can_go_up_left():
             return up > 0 and left > 0 and t[left, up] != RobotCommons.Tile.WALL and t[x, up] != RobotCommons.Tile.WALL and t[
-                left, y] != RobotCommons.Tile.WALL and t[left, up] != RobotCommons.Tile.VISITED
+                left, y] != RobotCommons.Tile.WALL and (int(t[left, up]) & bit_check) == 0
 
         def __can_go_down_left():
-            return down < max_y and left > 0 and t[left, down] != RobotCommons.Tile.WALL and t[x, down] != RobotCommons.Tile.WALL and t[left, y] != RobotCommons.Tile.WALL and t[left, down] != RobotCommons.Tile.VISITED
+            return down < max_y and left > 0 and t[left, down] != RobotCommons.Tile.WALL and t[x, down] != RobotCommons.Tile.WALL and t[
+                left, y] != RobotCommons.Tile.WALL and (int(t[left, down]) & bit_check) == 0
 
         def __can_go_up_right():
-            return up > 0 and right < max_x and t[right, up] != RobotCommons.Tile.WALL and t[x, up] != RobotCommons.Tile.WALL and t[right, y] != RobotCommons.Tile.WALL and t[right, up] != RobotCommons.Tile.VISITED
+            return up > 0 and right < max_x and t[right, up] != RobotCommons.Tile.WALL and t[x, up] != RobotCommons.Tile.WALL and t[
+                right, y] != RobotCommons.Tile.WALL and (int(t[right, up]) & bit_check) == 0
 
         def __can_go_down_right():
-            return down < max_y and right < max_x and t[right, down] != RobotCommons.Tile.WALL and t[x, down] != RobotCommons.Tile.WALL and t[right, y] != RobotCommons.Tile.WALL and t[right, down] != RobotCommons.Tile.VISITED
+            return down < max_y and right < max_x and t[right, down] != RobotCommons.Tile.WALL and t[x, down] != RobotCommons.Tile.WALL and t[
+                right, y] != RobotCommons.Tile.WALL and (int(t[right, down]) & bit_check) == 0
 
         def __can_go_up():
-            return up > 0 and t[x, up] != RobotCommons.Tile.WALL and t[x, up] != RobotCommons.Tile.VISITED
+            return up > 0 and t[x, up] != RobotCommons.Tile.WALL and (int(t[x, up]) & bit_check) == 0
 
         def __can_go_down():
-            return down < max_y and t[x, down] != RobotCommons.Tile.WALL and t[x, down] != RobotCommons.Tile.VISITED
+            return down < max_y and t[x, down] != RobotCommons.Tile.WALL and (int(t[x, down]) & bit_check) == 0
 
         def __can_go_left():
-            return left > 0 and t[left, y] != RobotCommons.Tile.WALL and t[left, y] != RobotCommons.Tile.VISITED
+            return left > 0 and t[left, y] != RobotCommons.Tile.WALL and (int(t[left, y]) & bit_check) == 0
 
         def __can_go_right():
-            return right < max_x and t[right, y] != RobotCommons.Tile.WALL and t[right, y] != RobotCommons.Tile.VISITED
+            return right < max_x and t[right, y] != RobotCommons.Tile.WALL and (int(t[right, y]) & bit_check) == 0
 
         if self.alg == RobotCommons.BlindSearchMethods.BFS:
             if __can_go_down_left():
@@ -280,45 +295,45 @@ class Robot(Problem):
                 yield RobotCommons.Actions.MV_DOWN_RIGHT
 
     def __mark_visited(self, state):
-        self.visited_tiles[state.x, state.y] += 1
-        self.visited_tiles_visualization[state.x, state.y] = RobotCommons.Tile.VISITED
-        new_tiles = state.tiles.copy()
-        new_tiles[state.x, state.y] = RobotCommons.Tile.VISITED
-        return new_tiles
+        if int(self.visited_tiles[state.x, state.y]) & MASK == 0:
+            self.visited_tiles[state.x, state.y] = MASK
+        bit_check = MASK >> state.depth
+        self.visited_tiles[state.x, state.y] = int(self.visited_tiles[state.x, state.y]) | bit_check
 
     def __move_up(self, s):
-        new_tiles = self.__mark_visited(s)
-        return State(s.x, s.y - 1, s.angle, new_tiles, s.already_faced)
+        self.__mark_visited(s)
+        return State(s.x, s.y - 1, s.angle, s.depth, s.already_faced)
 
     def __move_down(self, s):
-        new_tiles = self.__mark_visited(s)
-        return State(s.x, s.y + 1, s.angle, new_tiles, s.already_faced)
+        self.__mark_visited(s)
+        return State(s.x, s.y + 1, s.angle, s.depth, s.already_faced)
 
     def __move_left(self, s):
-        new_tiles = self.__mark_visited(s)
-        return State(s.x - 1, s.y, s.angle, new_tiles, s.already_faced)
+        self.__mark_visited(s)
+        return State(s.x - 1, s.y, s.angle, s.depth, s.already_faced)
 
     def __move_right(self, s):
-        new_tiles = self.__mark_visited(s)
-        return State(s.x + 1, s.y, s.angle, new_tiles, s.already_faced)
+        self.__mark_visited(s)
+        return State(s.x + 1, s.y, s.angle, s.depth, s.already_faced)
 
     def __move_up_left(self, s):
-        new_tiles = self.__mark_visited(s)
-        return State(s.x - 1, s.y - 1, s.angle, new_tiles, s.already_faced)
+        self.__mark_visited(s)
+        return State(s.x - 1, s.y - 1, s.angle, s.depth, s.already_faced)
 
     def __move_down_left(self, s):
-        new_tiles = self.__mark_visited(s)
-        return State(s.x - 1, s.y + 1, s.angle, new_tiles, s.already_faced)
+        self.__mark_visited(s)
+        return State(s.x - 1, s.y + 1, s.angle, s.depth, s.already_faced)
 
     def __move_up_right(self, s):
-        new_tiles = self.__mark_visited(s)
-        return State(s.x + 1, s.y - 1, s.angle, new_tiles, s.already_faced)
+        self.__mark_visited(s)
+        return State(s.x + 1, s.y - 1, s.angle, s.depth, s.already_faced)
 
     def __move_down_right(self, s):
-        new_tiles = self.__mark_visited(s)
-        return State(s.x + 1, s.y + 1, s.angle, new_tiles, s.already_faced)
+        self.__mark_visited(s)
+        return State(s.x + 1, s.y + 1, s.angle, s.depth, s.already_faced)
 
     def result(self, state, action):
+        self.step += 1
         func, args = {
             RobotCommons.Actions.MV_UP: (self.__move_up, (state,)),
             RobotCommons.Actions.MV_DOWN: (self.__move_down, (state,)),
@@ -330,7 +345,11 @@ class Robot(Problem):
             RobotCommons.Actions.MV_DOWN_LEFT: (self.__move_down_left, (state,)),
         }.get(action)
 
-        return func(*args)
+        next = func(*args)
+        plot_tile_map(fix_tile_map_after_solution(self.visited_tiles, self.initial, self.goal, None, state, next), False)
+        plt.savefig('./img/{}/{}__{:04d}.png'.format(self.alg, self.alg, self.step))
+        plt.cla()
+        return next
 
     def value(self, state):
         pass
@@ -511,7 +530,7 @@ class RobotTheta(Problem):
 
 def generate_maze(width, height, walls):
     if type(walls) == list:
-        tiles = np.ones((width, height)) * RobotCommons.Tile.EMPTY
+        tiles = np.ones((width, height)).astype(int) * RobotCommons.Tile.EMPTY
         if walls:
             rows, cols = np.transpose(walls)
             tiles[rows, cols] = RobotCommons.Tile.WALL
@@ -535,19 +554,19 @@ class RobotProblemFactory:
     def __init__(self, problem, alg, width, height, start, goal, walls=[]):
         self.start = start
         self.goal = goal
-        sx, sy, st = pluck(start, 'x', 'y', 'tiles')
+        sx, sy, st, depth = pluck(start, 'x', 'y', 'angle', 'depth')
         gx, gy = pluck(goal, 'x', 'y')
         self.tiles = np.array(generate_maze(width, height, walls))
         self.tiles[sx, sy] = RobotCommons.Tile.START
         self.tiles[gx, gy] = RobotCommons.Tile.GOAL
-        self.instance = problem(alg, State(sx, sy, st, self.tiles, []), goal)
+        self.instance = problem(self.tiles.copy(), alg, State(sx, sy, st, depth, []), goal)
 
 
 if __name__ == '__main__':
     width, height = 10, 10
-    start = State(0, 0, 90, None, None)
-    goal = State(9, 9, 0, None, None)
-    walls = [(i, 2) for i in range(9, 2, -1)] + [(i, 7) for i in range(0, 8)] + [(5,4),(4,5)]
+    start = State(0, 0, 90, 0, None)
+    goal = State(9, 9, 0, 0, None)
+    walls = [(i, 2) for i in range(9, 2, -1)] + [(i, 7) for i in range(0, 8)] + [(5, 4), (4, 5)]
 
     # width, height = 10, 10
     # start = State(1, 1, 90, None, None)
@@ -556,20 +575,45 @@ if __name__ == '__main__':
 
     for alg in RobotCommons.BlindSearchMethods:
         problem = RobotProblemFactory(Robot, alg, width, height, start, goal, walls)
-        plot_tile_map(fix_tile_map_after_solution(problem.tiles, problem.start, problem.goal, None))
-        e, solution = elapsed(lambda: alg.method(problem.instance))
-        print('Robot ', alg, ' found solution in ', e, 's : ', solution.path())
-        plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles_visualization, problem.start, problem.goal, solution))
+        if alg != RobotCommons.BlindSearchMethods.IDDFS:
+            continue
+            # plot_tile_map(fix_tile_map_after_solution(problem.tiles, problem.start, problem.goal, None, None, None), False)
+            # plt.savefig('./img/{}/{}__{:04d}.png'.format(alg, alg, 0))
+            # plt.cla()
+            # e, solution = elapsed(lambda: alg.method(problem.instance))
+            # print('Robot ', alg, ' found solution in ', e, 's : ', solution.path())
+            # plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles, problem.start, problem.goal, solution), False)
+            # plt.savefig('./img/{}/{}__{:04d}.png'.format(alg, alg, 6000))
+            # plt.cla()
+            # print(alg)
+        else:
+            def __iddfs():
+                for depth in range(sys.maxsize):
+                    plot_tile_map(fix_tile_map_after_solution(problem.tiles, problem.start, problem.goal, None, None, None), False)
+                    plt.savefig('./img/{}/{}__{:04d}.png'.format(RobotCommons.BlindSearchMethods.IDDFS, RobotCommons.BlindSearchMethods.IDDFS, 0))
+                    plt.cla()
+                    result = depth_limited_search(problem.instance, depth)
+                    new_state = problem.instance.initial
+                    problem.instance.initial = State(new_state.x, new_state.y, new_state.angle, depth, new_state.already_faced)
+                    if result != 'cutoff':
+                        return result
+
+
+            e, solution = elapsed(lambda: __iddfs())
+            print('Robot ', alg, ' found solution in ', e, 's : ', solution.path())
+            plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles, problem.start, problem.goal, solution), False)
+            plt.savefig('./img/{}/{}__{:04d}.png'.format(RobotCommons.BlindSearchMethods.IDDFS, RobotCommons.BlindSearchMethods.IDDFS, 6000))
+            plt.cla()
 
     problem = RobotProblemFactory(Robot, None, width, height, start, goal, walls)
     solution = astar_search(problem.instance, problem.instance.manhattan_distance)
     print('A* using first heuristic: ', solution.path())
-    plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles_visualization, problem.start, problem.goal, solution))
+    plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles, problem.start, problem.goal, solution))
 
     problem = RobotProblemFactory(Robot, None, width, height, start, goal, walls)
     solution = astar_search(problem.instance, problem.instance.euclidean_distance)
     print('A* using second heuristic: ', solution.path())
-    plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles_visualization, problem.start, problem.goal, solution))
+    plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles, problem.start, problem.goal, solution))
 
     # for alg in RobotCommons.BlindSearchMethods:
     #     if alg != RobotCommons.BlindSearchMethods.IDDFS:
