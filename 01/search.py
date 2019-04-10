@@ -14,7 +14,7 @@ import numpy as np
 from maze_generator import *
 from search import *
 
-LAST_FRAME = 0
+LAST_FRAME = sys.maxsize
 
 warnings.filterwarnings("ignore")
 
@@ -125,8 +125,8 @@ class RobotCommons:
         MV_DOWN_RIGHT = auto()
 
     class BlindSearchMethods(Enum):
-        BFS = (breadth_first_tree_search,)
-        DFS = (depth_first_tree_search,)
+        BFS = (breadth_first_graph_search,)
+        DFS = (depth_first_graph_search,)
         DLS = (depth_limited_search,)
         IDDFS = (iterative_deepening_search,)
 
@@ -231,34 +231,32 @@ class Robot(Problem):
         def __can_go_up_left():
             return up > 0 and left > 0 and t[left, up] != RobotCommons.Tile.WALL and (
                     t[x, up] != RobotCommons.Tile.WALL or t[
-                left, y] != RobotCommons.Tile.WALL) and (left, up) not in state.already_visited and last not in RobotCommons.up_left
+                left, y] != RobotCommons.Tile.WALL) and last not in RobotCommons.up_left
 
         def __can_go_down_left():
             return down < max_y and left > 0 and t[left, down] != RobotCommons.Tile.WALL and (
-                    t[left, y] != RobotCommons.Tile.WALL or t[x, down] != RobotCommons.Tile.WALL) and (
-                       left, down) not in state.already_visited and last not in RobotCommons.down_left
+                    t[left, y] != RobotCommons.Tile.WALL or t[x, down] != RobotCommons.Tile.WALL) and last not in RobotCommons.down_left
 
         def __can_go_up_right():
             return up > 0 and right < max_x and t[right, up] != RobotCommons.Tile.WALL and (
                     t[x, up] != RobotCommons.Tile.WALL or t[
-                right, y] != RobotCommons.Tile.WALL) and (right, up) not in state.already_visited and last not in RobotCommons.up_right
+                right, y] != RobotCommons.Tile.WALL) and last not in RobotCommons.up_right
 
         def __can_go_down_right():
             return down < max_y and right < max_x and t[right, down] != RobotCommons.Tile.WALL and (
-                    t[right, y] != RobotCommons.Tile.WALL or t[x, down] != RobotCommons.Tile.WALL) and (
-                       right, down) not in state.already_visited and last not in RobotCommons.down_right
+                    t[right, y] != RobotCommons.Tile.WALL or t[x, down] != RobotCommons.Tile.WALL) and last not in RobotCommons.down_right
 
         def __can_go_up():
-            return up > 0 and t[x, up] != RobotCommons.Tile.WALL and (x, up) not in state.already_visited and last not in RobotCommons.up
+            return up > 0 and t[x, up] != RobotCommons.Tile.WALL and last not in RobotCommons.up
 
         def __can_go_down():
-            return down < max_y and t[x, down] != RobotCommons.Tile.WALL and (x, down) not in state.already_visited and last not in RobotCommons.down
+            return down < max_y and t[x, down] != RobotCommons.Tile.WALL and last not in RobotCommons.down
 
         def __can_go_left():
-            return left > 0 and t[left, y] != RobotCommons.Tile.WALL and (left, y) not in state.already_visited and last not in RobotCommons.left
+            return left > 0 and t[left, y] != RobotCommons.Tile.WALL and last not in RobotCommons.left
 
         def __can_go_right():
-            return right < max_x and t[right, y] != RobotCommons.Tile.WALL and (right, y) not in state.already_visited and last not in RobotCommons.right
+            return right < max_x and t[right, y] != RobotCommons.Tile.WALL and last not in RobotCommons.right
 
         self.step += 1
         if self.step > LAST_FRAME:
@@ -420,35 +418,32 @@ class RobotBFS(Problem):
 
         def __can_go_up_left():
             return up > 0 and left > 0 and 0 < x < max_x and 0 < y < max_y and t[left, up] != RobotCommons.Tile.WALL and (
-                    t[x, up] != RobotCommons.Tile.WALL or t[
-                left, y] != RobotCommons.Tile.WALL) and t[left, up] != RobotCommons.Tile.VISITED
+                    t[x, up] != RobotCommons.Tile.WALL or t[left, y] != RobotCommons.Tile.WALL) and last not in RobotCommons.up_left
 
         def __can_go_down_left():
             return down < max_y and left > 0 and 0 < x < max_x and 0 < y < max_y and t[left, down] != RobotCommons.Tile.WALL and (
-                    t[left, y] != RobotCommons.Tile.WALL or t[x, down] != RobotCommons.Tile.WALL) and t[
-                       left, down] != RobotCommons.Tile.VISITED
+                    t[left, y] != RobotCommons.Tile.WALL or t[x, down] != RobotCommons.Tile.WALL) and last not in RobotCommons.down_left
 
         def __can_go_up_right():
             return up > 0 and right < max_x and 0 < x < max_x and 0 < y < max_y and t[right, up] != RobotCommons.Tile.WALL and (
                     t[x, up] != RobotCommons.Tile.WALL or t[
-                right, y] != RobotCommons.Tile.WALL) and t[right, up] != RobotCommons.Tile.VISITED and last not in RobotCommons.up_right
+                right, y] != RobotCommons.Tile.WALL) and last not in RobotCommons.up_right
 
         def __can_go_down_right():
             return down < max_y and right < max_x and 0 < x < max_x and 0 < y < max_y and t[right, down] != RobotCommons.Tile.WALL and (
-                    t[right, y] != RobotCommons.Tile.WALL or t[x, down] != RobotCommons.Tile.WALL) and t[
-                       right, down] != RobotCommons.Tile.VISITED and last not in RobotCommons.down_right
+                    t[right, y] != RobotCommons.Tile.WALL or t[x, down] != RobotCommons.Tile.WALL) and last not in RobotCommons.down_right
 
         def __can_go_up():
-            return up > 0 and t[x, up] != RobotCommons.Tile.WALL and t[x, up] != RobotCommons.Tile.VISITED and last not in RobotCommons.up
+            return up > 0 and t[x, up] != RobotCommons.Tile.WALL and last not in RobotCommons.up
 
         def __can_go_down():
-            return down < max_y and t[x, down] != RobotCommons.Tile.WALL and t[x, down] != RobotCommons.Tile.VISITED and last not in RobotCommons.down
+            return down < max_y and t[x, down] != RobotCommons.Tile.WALL and last not in RobotCommons.down
 
         def __can_go_left():
-            return left > 0 and t[left, y] != RobotCommons.Tile.WALL and t[left, up] != RobotCommons.Tile.VISITED and last not in RobotCommons.left
+            return left > 0 and t[left, y] != RobotCommons.Tile.WALL and last not in RobotCommons.left
 
         def __can_go_right():
-            return right < max_x and t[right, y] != RobotCommons.Tile.WALL and t[right, y] != RobotCommons.Tile.VISITED and last not in RobotCommons.right
+            return right < max_x and t[right, y] != RobotCommons.Tile.WALL and last not in RobotCommons.right
 
         self.step += 1
         if self.step > LAST_FRAME:
@@ -577,19 +572,19 @@ class RobotProblemFactory:
         self.tiles = np.array(generate_maze(width, height, walls))
         self.tiles[sx, sy] = RobotCommons.Tile.START
         self.tiles[gx, gy] = RobotCommons.Tile.GOAL
-        self.instance = problem(self.tiles.copy(), alg, State(sx, sy), goal)
+        self.instance = problem(self.tiles, alg, StateBFS(sx, sy), goal)
 
 
 if __name__ == '__main__':
-    width, height = 10, 10
-    start = State(1, 1)
-    goal = State(8, 8)
-    walls = [(i, 2) for i in range(0, 8)] + [(i, 7) for i in range(9, 2, -1)]
+    # width, height = 10, 10
+    # start = StateBFS(1, 1)
+    # goal = StateBFS(8, 8)
+    # walls = [(i, 2) for i in range(0, 8)] + [(i, 7) for i in range(9, 2, -1)]
 
-    # width, height = 60, 60
-    # start = State(10, 10)
-    # goal = State(50, 50)
-    # walls = [(i, 20) for i in range(0, 40)] + [(i, 40) for i in range(59, 20, -1)]
+    width, height = 60, 60
+    start = State(10, 10)
+    goal = State(50, 50)
+    walls = [(i, 20) for i in range(0, 40)] + [(i, 40) for i in range(59, 20, -1)]
 
     # width, height = 10, 10
     # start = State(1, 1, 90, None, None)
@@ -597,11 +592,7 @@ if __name__ == '__main__':
     # walls = 1
 
     for alg in RobotCommons.BlindSearchMethods:
-        problem = RobotProblemFactory(Robot, alg, width, height, start, goal, walls)
-        if alg == RobotCommons.BlindSearchMethods.BFS:
-            strt = StateBFS(1, 1)
-            gl = StateBFS(8, 8)
-            problem.instance = RobotBFS(problem.tiles, alg, strt, gl)
+        problem = RobotProblemFactory(RobotBFS, alg, width, height, start, goal, walls)
 
         plot_tile_map(fix_tile_map_after_solution(problem.tiles, problem.start, problem.goal, None, None, None), False)
         plt.savefig('./img/{}/{}__{:09d}.png'.format(alg, alg, 0))
