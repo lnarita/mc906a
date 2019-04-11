@@ -60,28 +60,6 @@ class Map(dict):
 
 
 class State(Map):
-    __slots__ = ("x", "y", "last_movement", "already_visited")
-
-    def __init__(self, x, y, last_movement=None, already_visited=None):
-        super().__init__()
-        if already_visited is None:
-            already_visited = set()
-        self.x = x
-        self.y = y
-        self.last_movement = last_movement
-        self.already_visited = already_visited
-
-    def __eq__(self, other):
-        return isinstance(other, State) and self.x == other.x and self.y == other.y
-
-    def __lt__(self, other):
-        return self.x < other.x and self.y < other.y
-
-    def __hash__(self):
-        return hash(frozenset(self))
-
-
-class StateBFS(Map):
     __slots__ = ("x", "y", "last_movement")
 
     def __init__(self, x, y, last_movement=None):
@@ -229,194 +207,6 @@ class Robot(Problem):
         left, right, up, down = x - 1, x + 1, y - 1, y + 1
 
         def __can_go_up_left():
-            return up > 0 and left > 0 and t[left, up] != RobotCommons.Tile.WALL and (
-                    t[x, up] != RobotCommons.Tile.WALL or t[
-                left, y] != RobotCommons.Tile.WALL) and last not in RobotCommons.up_left
-
-        def __can_go_down_left():
-            return down < max_y and left > 0 and t[left, down] != RobotCommons.Tile.WALL and (
-                    t[left, y] != RobotCommons.Tile.WALL or t[x, down] != RobotCommons.Tile.WALL) and last not in RobotCommons.down_left
-
-        def __can_go_up_right():
-            return up > 0 and right < max_x and t[right, up] != RobotCommons.Tile.WALL and (
-                    t[x, up] != RobotCommons.Tile.WALL or t[
-                right, y] != RobotCommons.Tile.WALL) and last not in RobotCommons.up_right
-
-        def __can_go_down_right():
-            return down < max_y and right < max_x and t[right, down] != RobotCommons.Tile.WALL and (
-                    t[right, y] != RobotCommons.Tile.WALL or t[x, down] != RobotCommons.Tile.WALL) and last not in RobotCommons.down_right
-
-        def __can_go_up():
-            return up > 0 and t[x, up] != RobotCommons.Tile.WALL and last not in RobotCommons.up
-
-        def __can_go_down():
-            return down < max_y and t[x, down] != RobotCommons.Tile.WALL and last not in RobotCommons.down
-
-        def __can_go_left():
-            return left > 0 and t[left, y] != RobotCommons.Tile.WALL and last not in RobotCommons.left
-
-        def __can_go_right():
-            return right < max_x and t[right, y] != RobotCommons.Tile.WALL and last not in RobotCommons.right
-
-        self.step += 1
-        if self.step > LAST_FRAME:
-            plot_tile_map(fix_tile_map_after_solution(self.visited_tiles, self.initial, self.goal, None, state, None), False)
-            plt.savefig('./img/{}/{}__{:09d}.png'.format(self.alg, self.alg, self.step))
-            plt.cla()
-
-        if self.alg != RobotCommons.BlindSearchMethods.DFS:  # DFS is implemented using a explicit stack, all the other variations of DFS are implemented using recursion
-            if __can_go_down_left():
-                yield RobotCommons.Actions.MV_DOWN_LEFT
-
-            if __can_go_down_right():
-                yield RobotCommons.Actions.MV_DOWN_RIGHT
-
-            if __can_go_up_left():
-                yield RobotCommons.Actions.MV_UP_LEFT
-
-            if __can_go_up_right():
-                yield RobotCommons.Actions.MV_UP_RIGHT
-
-            if __can_go_up():
-                yield RobotCommons.Actions.MV_UP
-
-            if __can_go_down():
-                yield RobotCommons.Actions.MV_DOWN
-
-            if __can_go_right():
-                yield RobotCommons.Actions.MV_RIGHT
-
-            if __can_go_left():
-                yield RobotCommons.Actions.MV_LEFT
-        else:
-            if __can_go_up():
-                yield RobotCommons.Actions.MV_UP
-
-            if __can_go_down():
-                yield RobotCommons.Actions.MV_DOWN
-
-            if __can_go_right():
-                yield RobotCommons.Actions.MV_RIGHT
-
-            if __can_go_left():
-                yield RobotCommons.Actions.MV_LEFT
-
-            if __can_go_up_left():
-                yield RobotCommons.Actions.MV_UP_LEFT
-
-            if __can_go_up_right():
-                yield RobotCommons.Actions.MV_UP_RIGHT
-
-            if __can_go_down_left():
-                yield RobotCommons.Actions.MV_DOWN_LEFT
-
-            if __can_go_down_right():
-                yield RobotCommons.Actions.MV_DOWN_RIGHT
-
-        self.__mark_visited(state)
-
-    def __mark_visited(self, state):
-        self.visited_tiles[state.x, state.y] = RobotCommons.Tile.VISITED
-        return state.x, state.y
-
-    def __move_up(self, s):
-        visited_tile = self.__mark_visited(s)
-        st = set()
-        st.add(visited_tile)
-        return State(s.x, s.y - 1, RobotCommons.Actions.MV_UP, s.already_visited | st)
-
-    def __move_down(self, s):
-        visited_tile = self.__mark_visited(s)
-        st = set()
-        st.add(visited_tile)
-        return State(s.x, s.y + 1, RobotCommons.Actions.MV_DOWN, s.already_visited | st)
-
-    def __move_left(self, s):
-        visited_tile = self.__mark_visited(s)
-        st = set()
-        st.add(visited_tile)
-        return State(s.x - 1, s.y, RobotCommons.Actions.MV_LEFT, s.already_visited | st)
-
-    def __move_right(self, s):
-        visited_tile = self.__mark_visited(s)
-        st = set()
-        st.add(visited_tile)
-        return State(s.x + 1, s.y, RobotCommons.Actions.MV_RIGHT, s.already_visited | st)
-
-    def __move_up_left(self, s):
-        visited_tile = self.__mark_visited(s)
-        st = set()
-        st.add(visited_tile)
-        return State(s.x - 1, s.y - 1, RobotCommons.Actions.MV_UP_LEFT, s.already_visited | st)
-
-    def __move_down_left(self, s):
-        visited_tile = self.__mark_visited(s)
-        st = set()
-        st.add(visited_tile)
-        return State(s.x - 1, s.y + 1, RobotCommons.Actions.MV_DOWN_LEFT, s.already_visited | st)
-
-    def __move_up_right(self, s):
-        visited_tile = self.__mark_visited(s)
-        st = set()
-        st.add(visited_tile)
-        return State(s.x + 1, s.y - 1, RobotCommons.Actions.MV_UP_RIGHT, s.already_visited | st)
-
-    def __move_down_right(self, s):
-        visited_tile = self.__mark_visited(s)
-        st = set()
-        st.add(visited_tile)
-        return State(s.x + 1, s.y + 1, RobotCommons.Actions.MV_DOWN_RIGHT, s.already_visited | st)
-
-    def result(self, state, action):
-        self.step += 1
-        func, args = {
-            RobotCommons.Actions.MV_UP: (self.__move_up, (state,)),
-            RobotCommons.Actions.MV_DOWN: (self.__move_down, (state,)),
-            RobotCommons.Actions.MV_LEFT: (self.__move_left, (state,)),
-            RobotCommons.Actions.MV_RIGHT: (self.__move_right, (state,)),
-            RobotCommons.Actions.MV_UP_RIGHT: (self.__move_up_right, (state,)),
-            RobotCommons.Actions.MV_DOWN_RIGHT: (self.__move_down_right, (state,)),
-            RobotCommons.Actions.MV_UP_LEFT: (self.__move_up_left, (state,)),
-            RobotCommons.Actions.MV_DOWN_LEFT: (self.__move_down_left, (state,)),
-        }.get(action)
-
-        next_state = func(*args)
-        if self.step > LAST_FRAME:
-            plot_tile_map(fix_tile_map_after_solution(self.visited_tiles, self.initial, self.goal, None, state, next_state), False)
-            plt.savefig('./img/{}/{}__{:09d}.png'.format(self.alg, self.alg, self.step))
-            plt.cla()
-        return next_state
-
-    def value(self, state):
-        pass
-
-    def h(self, node):
-        return self.euclidean_distance(node)
-
-    def manhattan_distance(self, node):
-        state = node.state
-        return abs(state.x - self.goal.x) + abs(state.y - self.goal.y)
-
-    def euclidean_distance(self, node):
-        state = node.state
-        return int((state.x - self.goal.x) ** 2 + (state.y - self.goal.y) ** 2)
-
-
-class RobotBFS(Problem):
-
-    def __init__(self, tiles, alg, initial, goal=None):
-        super(RobotBFS, self).__init__(initial, goal)
-        self.alg = alg
-        self.visited_tiles = tiles.copy()
-        self.step = 0
-
-    def actions(self, state):
-        x, y, last = pluck(state, 'x', 'y', 'last_movement')
-        t = self.visited_tiles
-        max_x, max_y = np.shape(t)
-        left, right, up, down = x - 1, x + 1, y - 1, y + 1
-
-        def __can_go_up_left():
             return up > 0 and left > 0 and 0 < x < max_x and 0 < y < max_y and t[left, up] != RobotCommons.Tile.WALL and (
                     t[x, up] != RobotCommons.Tile.WALL or t[left, y] != RobotCommons.Tile.WALL) and last not in RobotCommons.up_left
 
@@ -452,31 +242,46 @@ class RobotBFS(Problem):
             plt.savefig('./img/{}/{}__{:09d}.png'.format(self.alg, self.alg, self.step))
             plt.cla()
 
+        actions_list = []
+
         if __can_go_down_left():
-            yield RobotCommons.Actions.MV_DOWN_LEFT
+            # yield RobotCommons.Actions.MV_DOWN_LEFT
+            actions_list.append(RobotCommons.Actions.MV_DOWN_LEFT)
 
         if __can_go_down_right():
-            yield RobotCommons.Actions.MV_DOWN_RIGHT
+            # yield RobotCommons.Actions.MV_DOWN_RIGHT
+            actions_list.append(RobotCommons.Actions.MV_DOWN_RIGHT)
 
         if __can_go_up_left():
-            yield RobotCommons.Actions.MV_UP_LEFT
+            # yield RobotCommons.Actions.MV_UP_LEFT
+            actions_list.append(RobotCommons.Actions.MV_UP_LEFT)
 
         if __can_go_up_right():
-            yield RobotCommons.Actions.MV_UP_RIGHT
+            # yield RobotCommons.Actions.MV_UP_RIGHT
+            actions_list.append(RobotCommons.Actions.MV_UP_RIGHT)
 
         if __can_go_up():
-            yield RobotCommons.Actions.MV_UP
+            # yield RobotCommons.Actions.MV_UP
+            actions_list.append(RobotCommons.Actions.MV_UP)
 
         if __can_go_down():
-            yield RobotCommons.Actions.MV_DOWN
+            # yield RobotCommons.Actions.MV_DOWN
+            actions_list.append(RobotCommons.Actions.MV_DOWN)
 
         if __can_go_right():
-            yield RobotCommons.Actions.MV_RIGHT
+            # yield RobotCommons.Actions.MV_RIGHT
+            actions_list.append(RobotCommons.Actions.MV_RIGHT)
 
         if __can_go_left():
-            yield RobotCommons.Actions.MV_LEFT
+            # yield RobotCommons.Actions.MV_LEFT
+            actions_list.append(RobotCommons.Actions.MV_LEFT)
 
         self.__mark_visited(state)
+
+        if alg == RobotCommons.BlindSearchMethods.DFS:
+            random.shuffle(actions_list)
+
+        return actions_list
 
     def __mark_visited(self, state):
         self.visited_tiles[state.x, state.y] = RobotCommons.Tile.VISITED
@@ -572,7 +377,7 @@ class RobotProblemFactory:
         self.tiles = np.array(generate_maze(width, height, walls))
         self.tiles[sx, sy] = RobotCommons.Tile.START
         self.tiles[gx, gy] = RobotCommons.Tile.GOAL
-        self.instance = problem(self.tiles, alg, StateBFS(sx, sy), goal)
+        self.instance = problem(self.tiles, alg, State(sx, sy), goal)
 
 
 if __name__ == '__main__':
@@ -592,13 +397,18 @@ if __name__ == '__main__':
     # walls = 1
 
     for alg in RobotCommons.BlindSearchMethods:
-        problem = RobotProblemFactory(RobotBFS, alg, width, height, start, goal, walls)
+        problem = RobotProblemFactory(Robot, alg, width, height, start, goal, walls)
 
         plot_tile_map(fix_tile_map_after_solution(problem.tiles, problem.start, problem.goal, None, None, None), False)
         plt.savefig('./img/{}/{}__{:09d}.png'.format(alg, alg, 0))
         plt.cla()
-        e, solution = elapsed(lambda: alg.method(problem.instance))
+        if alg != RobotCommons.BlindSearchMethods.BFS:
+            continue
+            e, solution = elapsed(lambda: alg.method(problem.instance, limit=95))
+        else:
+            e, solution = elapsed(lambda: alg.method(problem.instance))
         print('Robot ', alg, ' found solution in ', e, 's : ', solution.path())
+        print('path length: ', len(solution.path()))
         plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles, problem.start, problem.goal, solution), False)
         plt.savefig('./img/{}/{}__{:09d}.png'.format(alg, alg, problem.instance.step + 1))
         plt.cla()
@@ -607,9 +417,13 @@ if __name__ == '__main__':
     problem = RobotProblemFactory(Robot, "A_star_manhattan", width, height, start, goal, walls)
     solution = astar_search(problem.instance, problem.instance.manhattan_distance)
     print('A* using manhattan distance: ', solution.path())
-    plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles, problem.start, problem.goal, solution))
+    plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles, problem.start, problem.goal, solution), False)
+    plt.savefig('./img/{}/{}__{:09d}.png'.format("A_star_manhattan", "A_star_manhattan", problem.instance.step))
+    plt.cla()
 
     problem = RobotProblemFactory(Robot, "A_star_euclidian_sqr", width, height, start, goal, walls)
     solution = astar_search(problem.instance, problem.instance.euclidean_distance)
     print('A* using sqr euclidian distance: ', solution.path())
-    plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles, problem.start, problem.goal, solution))
+    plot_tile_map(fix_tile_map_after_solution(problem.instance.visited_tiles, problem.start, problem.goal, solution), False)
+    plt.savefig('./img/{}/{}__{:09d}.png'.format("A_star_manhattan", "A_star_manhattan", problem.instance.step))
+    plt.cla()
