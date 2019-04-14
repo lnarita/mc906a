@@ -440,6 +440,8 @@ if __name__ == '__main__':
     print('Robot ', alg, ' found solution in ', e, 's : ', solution.path())
     print('path length: ', len(solution.path()))
 
+    # ======= BFS ======
+
     alg = "BFS"
     problem = RobotProblemFactory(Robot, alg, width, height, start, goal, walls)
 
@@ -458,7 +460,7 @@ if __name__ == '__main__':
     plt.savefig('./img/{0}/{0}__solution.png'.format(alg))
     plt.cla()
 
-    # ======= Utilities that make my life easier ======
+    # ======= DFS ======
 
     alg = "DFS"
     problem = RobotProblemFactory(Robot, alg, width, height, start, goal, walls)
@@ -474,7 +476,7 @@ if __name__ == '__main__':
     plt.savefig('./img/{0}/{0}__solution.png'.format(alg))
     plt.cla()
 
-    # ======= Utilities that make my life easier ======
+    # ======= A* + H1 (Manhattan Distance) ======
 
     alg = "A_star_manhattan"
     problem = RobotProblemFactory(Robot, alg, width, height, start, goal, walls)
@@ -489,7 +491,7 @@ if __name__ == '__main__':
     plt.savefig('./img/{0}/{0}__solution.png'.format(alg))
     plt.cla()
 
-    # ======= Utilities that make my life easier ======
+    # ======= A* + H2 (Euclidean Distance) ======
 
     alg = "A_star_euclidean"
     problem = RobotProblemFactory(Robot, alg, width, height, start, goal, walls)
