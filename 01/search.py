@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-
+import random
 import time
 # Needed to hide warnings in the matplotlib sections
 import warnings
@@ -9,7 +9,6 @@ from enum import Enum, IntEnum, auto
 import matplotlib.pyplot as plt
 import numpy as np
 
-from maze_generator import *
 from search import Problem, Node, InstrumentedProblem, breadth_first_graph_search, depth_first_graph_search, astar_search
 
 warnings.filterwarnings("ignore")
