@@ -1,0 +1,25 @@
+
+
+Para cada par, geram-se dois elementos fuzzy de 0 a 1.
+Fazer exemplos de amostra para nossas waifus.
+
+Características
+
+  - Cute / Beautiful
+  - Slim / Chubby
+  - Smart / Idiot
+  - Small / Huge
+  - Rich / Poor
+  - Innocent / Lewd
+  - Female / Male
+  - S/M
+  - Clumsy / Skilled
+  - Cheerful / Gloomy
+  - Flashy / Plain
+  - Busty / Flat
+  - Megane
+  - Catgirl
+  - Tomboy / Trap
+  - Maid-Butler
+  - Tsundere
+  - Yandere
