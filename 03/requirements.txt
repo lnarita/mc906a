@@ -1,0 +1,5 @@
+scikit-fuzzy~=0.4.1
+numpy>=1.6
+scipy>=0.9
+networkx>=1.9
+scikit-image>=0.14.3
