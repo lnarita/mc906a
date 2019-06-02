@@ -1,4 +1,8 @@
+from functools import reduce
+from itertools import product
+
 import numpy as np
+import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 
 from src.commons import Map
@@ -8,7 +12,8 @@ class Weeb(Map):
     def __init__(self, waifu_traits):
         super().__init__()
         self.__control_system = None
-        self.__traits = waifu_traits
+        self._traits = waifu_traits
+        self._labels = []
 
         def default_setup():
             pass
@@ -16,32 +21,37 @@ class Weeb(Map):
         def add_trait(trait):
             self[trait] = ctrl.Antecedent(np.arange(0, 11, 1), trait)
             setup_method_name = "setup_{}".format(trait)
-            if not self[setup_method_name]:
-                self[setup_method_name] = default_setup
+            self[setup_method_name] = default_setup
 
         for trait in waifu_traits:
             add_trait(trait)
+        self.likeness = ctrl.Consequent(np.arange(0, 11, 1), 'likeness')
+        self.likeness.automf(3, variable_type='quant')
+
+    def __ignore_all_traits(self):
+        if not self.__ignore_all_rule:
+            self.__ignore_all_rule = reduce(lambda a, b: self[b[0]][b[1]] if not a else a | self[b[0]][b[1]], product(self._traits, self._labels), False)
+        return self.__ignore_all_rule
 
     def is_best_gril(self):
-        raise NotImplementedError("Weeb must override `is_best_gril` method")
+        return self.__ignore_all_traits()
 
     def is_waifu(self):
-        raise NotImplementedError("Weeb must override `is_waifu` method")
+        return self.__ignore_all_traits()
 
     def is_trash(self):
-        raise NotImplementedError("Weeb must override `is_trash` method")
+        return self.__ignore_all_traits()
 
     def predict(self, gril):
-        if not self._control_system:
-            for trait in self.__traits:
+        if not self.__control_system:
+            for trait in self._traits:
                 self["setup_{}".format(trait)]()
             self.__control_system = ctrl.ControlSystem([self.is_best_gril(), self.is_waifu(), self.is_trash()])
 
         control_simulation = ctrl.ControlSystemSimulation(self.__control_system)
-        for trait in self.__traits:
+        for trait in self._traits:
             attr = gril[trait]
-            if attr:
-                control_simulation.input[trait] = attr
+            control_simulation.input[trait] = attr
 
         control_simulation.compute()
         return control_simulation
