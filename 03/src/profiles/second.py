@@ -5,7 +5,7 @@ from src.config import TRAITS
 from src.weeb import Weeb
 
 
-class ShortStacksLover(Weeb):
+class LewdAmazonLover(Weeb):
     def __init__(self):
         super().__init__(TRAITS)
 
@@ -27,29 +27,30 @@ class ShortStacksLover(Weeb):
     def is_best_gril(self):
         return ctrl.Rule(super().is_best_gril() & (
                 (
-                        (self.kawaii[self.higher] | self.kawaii[self.highest]) |
-                        (self.beautiful[self.higher] | self.beautiful[self.highest])
+                        (self.beautiful[self.high] | self.beautiful[self.higher] | self.beautiful[self.highest]) |
                 ) &
                 (
                         (
-                                (self.smart[self.lowest] | self.smart[self.lower]) &
-                                (self.baka[self.high] | self.baka[self.higher] | self.baka[self.highest])
+                                (self.smart[self.highest] | self.smart[self.higher]) &
+                                (self.baka[self.lowest])
                         ) |
-                        (self.short[self.high] | self.short[self.higher] | self.short[self.highest]) |
-                        (self.innocent[self.high] | self.innocent[self.higher] | self.innocent[self.highest]) |
-                        (self.lewd[self.lowest]) |
+                        (self.short[self.lowest] | self.tall[self.highest] | self.tall[self.higher]) |
+                        (self.lewd[self.high] | self.lewd[self.higher] | self.lewd[self.highest]) |
+                        (self.s[self.high] | self.s[self.higher] | self.s[self.highest]) |
+                        (self.flashy[self.high] | self.flashy[self.higher]) |
+                        (self.innocent[self.lowest]) |
                         (
                                 (self.female[self.high] | self.female[self.higher] | self.female[self.highest]) &
                                 (
-                                        (self.tsundere[self.highest]) &
+                                        (self.tsundere[self.lowest]) &
                                         (self.catgirl[self.lowest]) &
-                                        (self.clumsy[self.highest]) &
+                                        (self.skilled[self.highest]) &
                                         (
                                                 (self.busty[self.higher] | self.busty[self.highest]) |
-                                                (self.flat[self.lowest])
+                                                (self.flat[self.low])
                                         ) &
                                         (self.yandere[self.lowest]) |
-                                        (self.cheerful[self.higher] & self.gloomy[self.lower])
+                                        (self.cheerful[self.lower] & self.gloomy[self.higher])
                                 )
                         )
                 )
@@ -58,24 +59,25 @@ class ShortStacksLover(Weeb):
     def is_waifu(self):
         return ctrl.Rule(super().is_waifu() & (
                 (
-                        (self.kawaii[self.high] | self.kawaii[self.higher] | self.kawaii[self.highest]) |
+                        (self.kawaii[self.lowest]) |
                         (self.beautiful[self.high] | self.beautiful[self.higher] | self.beautiful[self.highest])
                 ) &
                 (
                         (
-                                (self.baka[self.high] | self.baka[self.higher] | self.baka[self.highest])
+                                (self.smart[self.high] | self.smart[self.highest] | self.smart[self.higher]) &
+                                (self.baka[self.lowest])
                         ) |
-                        (self.innocent[self.high]) |
-                        (self.lewd[self.lower] | self.lewd[self.low]) |
+                        (self.tall[self.high] | self.tall[self.highest] | self.tall[self.higher]) |
+                        (self.innocent[self.low]) |
+                        (self.flashy[self.high]) |
+                        (self.lewd[self.high] | self.lewd[self.higher] | self.lewd[self.highest]) |
+                        (self.s[self.high] | self.s[self.higher] | self.s[self.highest]) |
                         (
                                 (self.female[self.high] | self.female[self.higher] | self.female[self.highest]) &
                                 (
-                                        (self.tsundere[self.higher]) |
-                                        (self.clumsy[self.low]) |
-                                        (self.plain[self.high]) |
+                                        (self.tsundere[self.loew]) |
                                         (self.busty[self.high] | self.busty[self.higher]) |
-                                        (self.flat[self.low] | self.flat[self.lower]) |
-                                        (self.cheerful[self.high] | self.cheerful[self.higher]) |
+                                        (self.cheerful[self.lower] & self.gloomy[self.high]) |
                                         (self.yandere[self.lowest])
                                 )
                         )
@@ -85,24 +87,24 @@ class ShortStacksLover(Weeb):
     def is_trash(self):
         return ctrl.Rule(super().is_trash() & (
                 (
-                        (self.kawaii[self.lowest] | self.kawaii[self.lower] | self.kawaii[self.low]) &
-                        (self.beautiful[self.lowest] | self.beautiful[self.lower] | self.beautiful[self.low])
+                        (self.kawaii[self.highest] | self.kawaii[self.higher])
                 ) |
                 (
-                        (self.smart[self.higest] | self.smart[self.higher] | self.smart[self.high]) &
-                        (self.baka[self.lowest])
+                        (self.baka[self.higest] | self.baka[self.higher]) &
+                        (self.smart[self.lowest])
                 ) |
-                (self.tall[self.high] | self.tall[self.higher] | self.tall[self.highest]) |
-                (self.lewd[self.highest]) |
+                (self.short[self.high] | self.tall[self.higher] | self.tall[self.highest]) |
+                (self.lewd[self.lowest]) |
+                (self.plain[self.highest] | self.flashy[self.higher]) |
                 (self.male[self.high] | self.male[self.higher] | self.male[self.highest]) &
                 (
                         (self.female[self.high] | self.female[self.higher] | self.female[self.highest]) &
                         (
-                                (self.catgirl[self.high] | self.catgirl[self.higher] | self.catgirl[self.highest]) |
-                                (self.s[self.high] | self.s[self.higher] | self.s[self.highest]) |
-                                (self.flashy[self.high] | self.flashy[self.higher] | self.flashy[self.highest]) |
+                                (self.m[self.high] | self.m[self.higher] | self.m[self.highest]) |
+                                (self.flat[self.lowest]) |
+                                (self.flashy[self.lowest] | self.flashy[self.lower] | self.flashy[self.low]) |
                                 (self.yandere[self.high] | self.yandere[self.higher] | self.yandere[self.highest]) |
-                                (self.gloomy[self.higher] | self.gloomy[self.highest])
+                                (self.cheerful[self.higher] | self.cheerful[self.highest])
                         )
                 )
         ), self.likeness['low'])
