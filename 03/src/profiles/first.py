@@ -89,11 +89,11 @@ class ShortStacksLover(Weeb):
                         (self.beautiful[self.lowest] | self.beautiful[self.lower] | self.beautiful[self.low])
                 ) |
                 (
-                        (self.smart[self.higest] | self.smart[self.higher] | self.smart[self.high]) &
+                        (self.smart[self.highest] | self.smart[self.higher] | self.smart[self.high]) &
                         (self.baka[self.lowest])
                 ) |
                 (self.tall[self.high] | self.tall[self.higher] | self.tall[self.highest]) |
-                (self.lewd[self.highest]) |
+                (self.lewd[self.high]) |
                 (self.male[self.high] | self.male[self.higher] | self.male[self.highest]) &
                 (
                         (self.female[self.high] | self.female[self.higher] | self.female[self.highest]) &
