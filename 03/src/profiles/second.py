@@ -1,3 +1,4 @@
+import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 
@@ -27,7 +28,7 @@ class LewdAmazonLover(Weeb):
     def is_best_gril(self):
         return ctrl.Rule(super().is_best_gril() & (
                 (
-                        (self.beautiful[self.high] | self.beautiful[self.higher] | self.beautiful[self.highest]) |
+                    (self.beautiful[self.high] | self.beautiful[self.higher] | self.beautiful[self.highest])
                 ) &
                 (
                         (
@@ -75,7 +76,7 @@ class LewdAmazonLover(Weeb):
                         (
                                 (self.female[self.high] | self.female[self.higher] | self.female[self.highest]) &
                                 (
-                                        (self.tsundere[self.loew]) |
+                                        (self.tsundere[self.lower]) |
                                         (self.busty[self.high] | self.busty[self.higher]) |
                                         (self.cheerful[self.lower] & self.gloomy[self.high]) |
                                         (self.yandere[self.lowest])
@@ -87,10 +88,10 @@ class LewdAmazonLover(Weeb):
     def is_trash(self):
         return ctrl.Rule(super().is_trash() & (
                 (
-                        (self.kawaii[self.highest] | self.kawaii[self.higher])
+                    (self.kawaii[self.highest] | self.kawaii[self.higher])
                 ) |
                 (
-                        (self.baka[self.higest] | self.baka[self.higher]) &
+                        (self.baka[self.highest] | self.baka[self.higher]) &
                         (self.smart[self.lowest])
                 ) |
                 (self.short[self.high] | self.tall[self.higher] | self.tall[self.highest]) |
@@ -108,3 +109,57 @@ class LewdAmazonLover(Weeb):
                         )
                 )
         ), self.likeness['low'])
+
+
+class LewdAmazonLover2(LewdAmazonLover):
+    def __init__(self):
+        super().__init__()
+
+        def default_setup_fun(trait):
+            r = np.sort(np.random.choice(self[trait].universe, len(self._labels) * 4))
+
+            def _stp_fun():
+                self[trait][self.lowest] = fuzz.trapmf(self[trait].universe, r[:4])
+                self[trait][self.lower] = fuzz.trapmf(self[trait].universe, r[4:8])
+                self[trait][self.low] = fuzz.trapmf(self[trait].universe, r[8:12])
+                self[trait][self.high] = fuzz.trapmf(self[trait].universe, r[12:16])
+                self[trait][self.higher] = fuzz.trapmf(self[trait].universe, r[16:20])
+                self[trait][self.highest] = fuzz.trapmf(self[trait].universe, r[20:])
+
+            return _stp_fun
+
+        self.lowest = 'E'
+        self.lower = 'D'
+        self.low = 'C'
+        self.high = 'B'
+        self.higher = 'A'
+        self.highest = 'EX'
+
+        self._labels = [self.lowest, self.lower, self.low, self.high, self.higher, self.highest]
+
+        for trait in self._traits:
+            self["setup_{}".format(trait)] = default_setup_fun(trait)
+
+
+class LewdAmazonLover3(LewdAmazonLover):
+    def __init__(self):
+        super().__init__()
+
+        def default_setup_fun(trait):
+            return lambda: self[trait].automf(6, names=self._labels)
+
+        self.lowest = 'E'
+        self.lower = 'D'
+        self.low = 'C'
+        self.high = 'B'
+        self.higher = 'A'
+        self.highest = 'EX'
+
+        self._labels = [self.lowest, self.lower, self.low, self.high, self.higher, self.highest]
+
+        self.likeness['low'] = fuzz.zmf(self.likeness.universe, 2, 4)
+        self.likeness['average'] = fuzz.gbellmf(self.likeness.universe, 2, 2, 6)
+        self.likeness['high'] = fuzz.sigmf(self.likeness.universe, 8, 2)
+
+        for trait in self._traits:
+            self["setup_{}".format(trait)] = default_setup_fun(trait)

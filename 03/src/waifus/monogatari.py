@@ -5,7 +5,6 @@ from src.waifu import BaseWaifu
 
 @singleton
 class Senjougahara(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
@@ -22,9 +21,9 @@ class Senjougahara(BaseWaifu):
         self.tsundere = 9
         self.yandere = 6
 
+
 @singleton
 class Shinobu(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
@@ -39,9 +38,9 @@ class Shinobu(BaseWaifu):
         self.plain = 6
         self.tsundere = 5
 
+
 @singleton
 class Hanekawa(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
@@ -60,10 +59,9 @@ class Hanekawa(BaseWaifu):
         self.busty = 9
         self.female = 10
 
+
 @singleton
 class Hachikuji(BaseWaifu):
-    __instance = None
-
     def __init__(self):
         super().__init__()
         self.female = 10
@@ -77,9 +75,9 @@ class Hachikuji(BaseWaifu):
         self.flashy = 5
         self.short = 8
 
+
 @singleton
 class Kanbaru(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
@@ -102,7 +100,6 @@ class Kanbaru(BaseWaifu):
 
 @singleton
 class Sengoku(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
