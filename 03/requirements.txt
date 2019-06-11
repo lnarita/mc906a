@@ -4,3 +4,4 @@ scipy>=0.9
 networkx>=1.9
 scikit-image>=0.14.3
 singleton-decorator~=1.0.0
+pandas~=0.24.2
