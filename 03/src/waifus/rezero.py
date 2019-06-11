@@ -5,10 +5,10 @@ from src.waifu import BaseWaifu
 
 @singleton
 class Emilia(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
+        self.name = "Emilia"
         self.beautiful = 6
         self.slim = 7
         self.smart = 4
@@ -21,12 +21,13 @@ class Emilia(BaseWaifu):
         self.plain = 8
         self.busty = 5
 
+
 @singleton
 class Rem(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
+        self.name = "Rem"
         self.kawaii = 8
         self.beautiful = 9
         self.slim = 7
@@ -43,12 +44,13 @@ class Rem(BaseWaifu):
         self.busty = 6
         self.yandere = 2
 
+
 @singleton
 class Felix(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
+        self.name = "Felix Argyle"
         self.kawaii = 9
         self.beautiful = 6
         self.slim = 9

@@ -8,6 +8,7 @@ class Senjougahara(BaseWaifu):
 
     def __init__(self):
         super().__init__()
+        self.name = "Hitagi Senjougahara"
         self.beautiful = 7
         self.slim = 10
         self.tall = 4
@@ -27,6 +28,7 @@ class Shinobu(BaseWaifu):
 
     def __init__(self):
         super().__init__()
+        self.name = "Shinobu Oshino"
         self.kawaii = 5
         self.slim = 6
         self.baka = 9
@@ -44,6 +46,7 @@ class Hanekawa(BaseWaifu):
 
     def __init__(self):
         super().__init__()
+        self.name = "Tsubasa Hanekawa"
         self.beautiful = 8
         self.slim = 6
         self.chubby = 4
@@ -64,6 +67,7 @@ class Hanekawa(BaseWaifu):
 class Hachikuji(BaseWaifu):
     def __init__(self):
         super().__init__()
+        self.name = "Mayoi Hachikuji"
         self.female = 10
         self.baka = 9
         self.cheerful = 9
@@ -81,6 +85,7 @@ class Kanbaru(BaseWaifu):
 
     def __init__(self):
         super().__init__()
+        self.name = "Suruga Kanbaru"
         self.female = 10
         self.baka = 7
         self.cheerful = 10
@@ -103,6 +108,7 @@ class Sengoku(BaseWaifu):
 
     def __init__(self):
         super().__init__()
+        self.name = "Nadeko Sengoku"
         self.female = 10
         self.baka = 7
         self.gloomy = 9

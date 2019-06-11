@@ -5,10 +5,10 @@ from src.waifu import BaseWaifu
 
 @singleton
 class Chitoge(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
+        self.name = "Chitoge Kirisaki"
         self.beautiful = 7
         self.slim = 7
         self.baka = 8
@@ -23,12 +23,13 @@ class Chitoge(BaseWaifu):
         self.flat = 5
         self.tsundere = 10
 
+
 @singleton
 class Kosaki(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
+        self.name = "Kosaki Onodera"
         self.kawaii = 8
         self.beautiful = 6
         self.slim = 7
@@ -47,10 +48,10 @@ class Kosaki(BaseWaifu):
 
 @singleton
 class Tsugumi(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
+        self.name = "Seishirou Tsugumi"
         self.beautiful = 6
         self.chubby = 3
         self.baka = 8
@@ -74,10 +75,10 @@ class Tsugumi(BaseWaifu):
 
 @singleton
 class Marika(BaseWaifu):
-    __instance = None
 
     def __init__(self):
         super().__init__()
+        self.name = "Marika Tachibana"
         self.beautiful = 7
         self.slim = 8
         self.smart = 6
