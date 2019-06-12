@@ -5,6 +5,7 @@ from src.config import TRAITS
 class Waifu(Map):
     def __init__(self, traits):
         super().__init__()
+        self.name = "Generic Waifu Schema"
 
         def add_trait(trait):
             self[trait] = 0
